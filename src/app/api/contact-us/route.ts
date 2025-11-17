@@ -10,14 +10,14 @@ export async function POST(request: NextRequest) {
   try {
     // Get form data from request
     const body = await request.json();
-    const { firstName, lastName, email, phone } = body;
+    const { firstName, lastName, email, phone, company, message } = body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !phone) {
+    if (!firstName || !lastName || !email) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'All fields are required: firstName, lastName, email, and phone' 
+          error: 'First name, last name, and email are required' 
         },
         { status: 400 }
       );
@@ -58,26 +58,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create contact in GHL
-    const contactData = {
+    // Prepare contact data for GHL
+    const contactData: any = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: email.trim().toLowerCase(),
-      phone: phone.trim(),
+      locationId: process.env.GHL_LOCATION_ID,
     };
 
-    const response = await ghl.contacts.createContact({
-      ...contactData,
-      locationId: process.env.GHL_LOCATION_ID,
-    });
+    // Add optional fields if provided
+    if (phone) {
+      contactData.phone = phone.trim();
+    }
+
+    if (company) {
+      contactData.companyName = company.trim();
+    }
+
+    // Add message as a note or custom field if needed
+    // For now, we'll store it in a note after contact creation
+    const messageText = message?.trim();
+
+    // Create contact in GHL
+    const response = await ghl.contacts.createContact(contactData);
+
+    // If there's a message, add it as a note to the contact
+    if (messageText && response.contact?.id) {
+      try {
+        await ghl.contacts.createNote(
+          { contactId: response.contact.id },
+          {
+            body: messageText,
+          }
+        );
+      } catch (noteError) {
+        // Log but don't fail the request if note creation fails
+        console.error('Failed to create note for contact:', noteError);
+      }
+    }
 
     // Log success (for testing purposes)
-    console.log('Contact created successfully:', response);
+    console.log('Contact created successfully from Contact Us form:', response);
 
     return NextResponse.json(
       { 
         success: true, 
-        message: 'Contact created successfully in GHL',
+        message: 'Thank you! We\'ll be in touch soon.',
         contactId: response.contact?.id || response.id 
       },
       { status: 200 }
@@ -88,7 +114,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating contact in GHL:', error);
 
     // Return user-friendly error message
-    const errorMessage = error?.message || 'Failed to create contact in GHL';
+    const errorMessage = error?.message || 'Failed to submit your information. Please try again.';
     const statusCode = error?.statusCode || error?.status || 500;
 
     return NextResponse.json(

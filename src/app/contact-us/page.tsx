@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Script from "next/script";
 import { PageBrand } from "@/components/page-brand";
+import { ContactUsForm } from "@/components/contact-us-form";
 
 export const metadata: Metadata = {
   title: "Contact Adsit Digital",
@@ -78,30 +78,7 @@ export default function ContactPage() {
               We’ll review your current setup, identify quick wins, and follow up with clear next steps.
             </p>
             <div className="mt-10">
-              <iframe
-                src="https://api.adsitdigital.com/widget/form/aMUXjWJ4CnLCuyfYfFjt"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                  borderRadius: "15px",
-                }}
-                id="inline-aMUXjWJ4CnLCuyfYfFjt"
-                data-layout='{"id":"INLINE"}'
-                data-trigger-type="alwaysShow"
-                data-trigger-value=""
-                data-activation-type="alwaysActivated"
-                data-activation-value=""
-                data-deactivation-type="neverDeactivate"
-                data-deactivation-value=""
-                data-form-name="Adsit Digital Contact Us"
-                data-height="808"
-                data-layout-iframe-id="inline-aMUXjWJ4CnLCuyfYfFjt"
-                data-form-id="aMUXjWJ4CnLCuyfYfFjt"
-                title="Adsit Digital Contact Us"
-                className="min-h-[808px] w-full"
-              />
-              <Script src="https://api.adsitdigital.com/js/form_embed.js" strategy="afterInteractive" />
+              <ContactUsForm />
             </div>
           </div>
         </section>
