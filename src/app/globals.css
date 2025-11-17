@@ -1,0 +1,765 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  /* Typography variables map the imported Geist font families */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Core surface tokens - Light theme: white background */
+  --background-base: #ffffff;
+  --background-muted: #f5f5f5;
+  --surface-overlay: rgba(0, 0, 0, 0.04);
+  --surface-glass-soft: rgba(0, 0, 0, 0.06);
+  --surface-glass-strong: rgba(0, 0, 0, 0.1);
+  --surface-gradient-stop: rgba(255, 255, 255, 0.95);
+  --border-glass: rgba(0, 0, 0, 0.12);
+  --border-glass-strong: rgba(0, 0, 0, 0.18);
+
+  /* Shadow system */
+  --brand-shadow-soft: rgba(15, 23, 42, 0.22);
+  --brand-shadow-strong: rgba(15, 23, 42, 0.35);
+
+  /* Typographic palette - Light theme: dark text on white */
+  --text-primary: #0a0a0a;
+  --text-secondary: rgba(10, 10, 10, 0.7);
+  --text-tertiary: rgba(10, 10, 10, 0.7);
+  --text-inverse: #ffffff;
+
+  /* Layout rhythm tokens */
+  --spacing-section: clamp(3.5rem, 6vw, 6.5rem);
+  --radius-lg: 32px;
+  --radius-xl: 40px;
+  --blur-strong: 28px;
+  --container-max: 80rem;
+  --container-padding: clamp(1.5rem, 4vw, 3.5rem);
+
+  /* Default brand palette (light blue) */
+  --brand-primary: #53c4ef;
+  --brand-secondary: #1d9ed9;
+  --brand-tertiary: #9be3ff;
+  --brand-contrast-strong: #03111b;
+  --brand-contrast-soft: #f8fbff;
+
+  /* Gradient primitives using the active brand color */
+  --gradient-primary: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-tertiary) 82%, white 18%),
+    color-mix(in srgb, var(--brand-secondary) 65%, black 12%)
+  );
+  --gradient-accent: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--brand-primary) 74%, white 26%),
+    color-mix(in srgb, var(--brand-secondary) 70%, black 30%)
+  );
+  --gradient-text: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--brand-primary) 86%, white 14%),
+    color-mix(in srgb, var(--brand-secondary) 75%, black 10%)
+  );
+  --gradient-sheen: radial-gradient(
+    120% 120% at 15% -10%,
+    color-mix(in srgb, var(--brand-tertiary) 52%, transparent) 0%,
+    transparent 58%
+  );
+  --gradient-overlay: radial-gradient(
+    65% 65% at 50% 0%,
+    color-mix(in srgb, var(--brand-primary) 24%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+@theme inline {
+  --color-background: var(--background-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* System preference fallback - only applies when no explicit theme is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    /* Dark theme: black background */
+    --background-base: #000000;
+    --background-muted: #0a0a0a;
+    --surface-overlay: rgba(255, 255, 255, 0.08);
+    --surface-glass-soft: rgba(255, 255, 255, 0.12);
+    --surface-glass-strong: rgba(255, 255, 255, 0.18);
+    --surface-gradient-stop: rgba(0, 0, 0, 0.8);
+    --border-glass: rgba(255, 255, 255, 0.2);
+    --border-glass-strong: rgba(255, 255, 255, 0.3);
+    --brand-shadow-soft: rgba(0, 0, 0, 0.5);
+    --brand-shadow-strong: rgba(0, 0, 0, 0.7);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --text-tertiary: rgba(255, 255, 255, 0.6);
+    --text-inverse: #000000;
+  }
+}
+
+/* Explicit light theme - overrides system preference */
+[data-theme="light"] {
+  color-scheme: light;
+  /* Light theme: white background */
+  --background-base: #ffffff;
+  --background-muted: #f5f5f5;
+  --surface-overlay: rgba(0, 0, 0, 0.04);
+  --surface-glass-soft: rgba(0, 0, 0, 0.06);
+  --surface-glass-strong: rgba(0, 0, 0, 0.1);
+  --surface-gradient-stop: rgba(255, 255, 255, 0.95);
+  --border-glass: rgba(0, 0, 0, 0.12);
+  --border-glass-strong: rgba(0, 0, 0, 0.18);
+  --brand-shadow-soft: rgba(15, 23, 42, 0.22);
+  --brand-shadow-strong: rgba(15, 23, 42, 0.35);
+  --text-primary: #0a0a0a;
+  --text-secondary: rgba(10, 10, 10, 0.7);
+  --text-tertiary: rgba(10, 10, 10, 0.7);
+  --text-inverse: #ffffff;
+}
+
+/* Explicit dark theme - overrides system preference */
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Dark theme: black background */
+  --background-base: #000000;
+  --background-muted: #0a0a0a;
+  --surface-overlay: rgba(255, 255, 255, 0.08);
+  --surface-glass-soft: rgba(255, 255, 255, 0.12);
+  --surface-glass-strong: rgba(255, 255, 255, 0.18);
+  --surface-gradient-stop: rgba(0, 0, 0, 0.8);
+  --border-glass: rgba(255, 255, 255, 0.2);
+  --border-glass-strong: rgba(255, 255, 255, 0.3);
+  --brand-shadow-soft: rgba(0, 0, 0, 0.5);
+  --brand-shadow-strong: rgba(0, 0, 0, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-tertiary: rgba(255, 255, 255, 0.6);
+  --text-inverse: #000000;
+}
+
+/* Brand palettes — extendable via matching data-brand attribute */
+[data-brand="light-blue"] {
+  --brand-primary: #53c4ef;
+  --brand-secondary: #1d9ed9;
+  --brand-tertiary: #9be3ff;
+  --brand-contrast-strong: #03111b;
+  --brand-contrast-soft: #f8fbff;
+}
+
+[data-brand="purple"] {
+  --brand-primary: #571e72;
+  --brand-secondary: #7748a6;
+  --brand-tertiary: #b083d2;
+  --brand-contrast-strong: #17052a;
+  --brand-contrast-soft: #fdf7ff;
+}
+
+[data-brand="dark-blue"] {
+  --brand-primary: #2670d0;
+  --brand-secondary: #1b4f94;
+  --brand-tertiary: #5da0ff;
+  --brand-contrast-strong: #04152b;
+  --brand-contrast-soft: #f6f9ff;
+}
+
+[data-brand="orange"] {
+  --brand-primary: #ff8f33;
+  --brand-secondary: #d06318;
+  --brand-tertiary: #ffc28a;
+  --brand-contrast-strong: #2a1004;
+  --brand-contrast-soft: #fff9f3;
+}
+
+[data-brand="yellow"] {
+  --brand-primary: #ffdd0c;
+  --brand-secondary: #c7a403;
+  --brand-tertiary: #fff3a6;
+  --brand-contrast-strong: #221800;
+  --brand-contrast-soft: #fffbea;
+}
+
+[data-brand="black"] {
+  --brand-primary: #000000;
+  --brand-secondary: #1f1f1f;
+  --brand-tertiary: #4d4d4d;
+  --brand-contrast-strong: #f9f9f9;
+  --brand-contrast-soft: #f9f9f9;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background-base);
+  color: var(--text-primary);
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  line-height: 1.6;
+  transition:
+    background 220ms ease,
+    color 180ms ease;
+}
+
+main {
+  background: transparent;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: var(--font-sans, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+p,
+ul,
+ol,
+dl,
+blockquote {
+  margin: 0;
+  color: inherit;
+}
+
+label {
+  color: var(--text-primary);
+}
+
+label span,
+legend {
+  color: var(--text-secondary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+  transition: color 180ms ease;
+}
+
+a.brand-link {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand-primary) 80%, white 20%),
+    color-mix(in srgb, var(--brand-secondary) 75%, black 25%)
+  );
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 2px;
+  padding-bottom: 1px;
+}
+
+a.brand-link:hover,
+a.brand-link:focus-visible {
+  color: color-mix(in srgb, var(--brand-primary) 88%, var(--text-inverse) 12%);
+  background-size: 100% 2px;
+}
+
+.gradient-heading {
+  color: var(--text-primary);
+  background-image: none;
+  background-clip: unset;
+  -webkit-background-clip: unset;
+  filter: none;
+}
+
+.page-surface {
+  position: relative;
+  isolation: isolate;
+  background: var(--background-base);
+  color: var(--text-primary);
+}
+
+.page-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    var(--gradient-overlay),
+    var(--gradient-sheen);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    80% 80% at 80% 10%,
+    color-mix(in srgb, var(--brand-primary) 12%, transparent) 0%,
+    transparent 65%
+  );
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.page-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.section-grid {
+  display: grid;
+  gap: var(--spacing-section);
+}
+
+.container {
+  margin-inline: auto;
+  width: min(var(--container-max), 100%);
+  padding-inline: var(--container-padding);
+}
+
+.glass-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  background: color-mix(in srgb, var(--surface-glass-soft) 60%, transparent 40%);
+  backdrop-filter: blur(var(--blur-strong));
+  -webkit-backdrop-filter: blur(var(--blur-strong));
+  box-shadow: 0 26px 80px var(--brand-shadow-soft);
+  color: var(--text-primary);
+}
+
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border-glass);
+  background: color-mix(in srgb, var(--surface-overlay) 70%, transparent 30%);
+  backdrop-filter: blur(calc(var(--blur-strong) / 1.6));
+  -webkit-backdrop-filter: blur(calc(var(--blur-strong) / 1.6));
+  box-shadow: 0 20px 48px color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  overflow: hidden;
+}
+
+.glass-header::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -55%;
+  height: 140%;
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand-primary) 32%, transparent),
+    color-mix(in srgb, var(--brand-tertiary) 18%, transparent),
+    color-mix(in srgb, var(--brand-secondary) 32%, transparent)
+  );
+  opacity: 0.75;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-link {
+  color: color-mix(in srgb, var(--text-primary) 75%, var(--brand-primary) 25%);
+  font-weight: 500;
+  transition: color 180ms ease;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: color-mix(in srgb, var(--brand-primary) 85%, var(--text-primary) 15%);
+}
+
+.social-link {
+  color: color-mix(in srgb, var(--text-secondary) 70%, var(--brand-primary) 30%);
+  transition: color 180ms ease;
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+  color: color-mix(in srgb, var(--brand-primary) 72%, var(--text-primary) 28%);
+}
+
+.glass-panel[data-tone="subtle"] {
+  background: color-mix(in srgb, var(--surface-overlay) 75%, transparent 25%);
+  box-shadow: 0 22px 70px var(--brand-shadow-soft);
+}
+
+.glass-panel[data-tone="inset"] {
+  background: color-mix(in srgb, var(--surface-overlay) 65%, transparent 35%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 60px var(--brand-shadow-soft);
+}
+
+.glass-panel[data-tone="accent"] {
+  background-image: var(--gradient-primary);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 30px 120px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+  position: relative;
+}
+
+.glass-panel[data-tone="accent"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--gradient-accent);
+  opacity: 0.3;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.footer-surface {
+  border-top: 1px solid var(--border-glass);
+  background: var(--background-base);
+  color: var(--text-primary);
+  padding-block: clamp(2.5rem, 4vw, 3.75rem);
+}
+
+.footer-link {
+  color: color-mix(in srgb, var(--text-secondary) 75%, var(--brand-primary) 25%);
+  transition: color 180ms ease;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: color-mix(in srgb, var(--brand-primary) 78%, var(--text-primary) 22%);
+}
+
+.timeline-spine {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--brand-tertiary) 65%, transparent) 0%,
+    color-mix(in srgb, var(--brand-primary) 55%, transparent) 55%,
+    color-mix(in srgb, var(--brand-secondary) 65%, transparent) 100%
+  );
+}
+
+.timeline-connector {
+  background: color-mix(in srgb, var(--brand-tertiary) 58%, transparent);
+}
+
+.timeline-bullet {
+  display: inline-flex;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-tertiary) 70%, var(--background-base) 30%);
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+}
+
+.glass-input {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  background: color-mix(in srgb, var(--surface-overlay) 70%, transparent 30%);
+  padding: 0.9rem 1.1rem;
+  color: var(--text-primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 40px color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  backdrop-filter: blur(calc(var(--blur-strong) / 1.4));
+  -webkit-backdrop-filter: blur(calc(var(--blur-strong) / 1.4));
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.glass-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.glass-input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-tertiary) 75%, white 25%);
+  outline-offset: 2px;
+  border-color: color-mix(in srgb, var(--brand-primary) 65%, transparent);
+  box-shadow: 0 26px 48px color-mix(in srgb, var(--brand-secondary) 28%, transparent);
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--brand-tertiary) 24%, rgba(255, 255, 255, 0.08));
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--brand-primary) 12%);
+  backdrop-filter: blur(calc(var(--blur-strong) / 1.6));
+  -webkit-backdrop-filter: blur(calc(var(--blur-strong) / 1.6));
+}
+
+.brand-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 999px;
+  padding: 0.85rem 2.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background-image: var(--gradient-accent);
+  color: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--brand-primary) 32%, transparent);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    filter 200ms ease,
+    background-image 200ms ease;
+}
+
+.brand-button:hover,
+.brand-button:focus-visible {
+  transform: translateY(-2px);
+  background-image: var(--gradient-primary);
+  box-shadow: 0 28px 70px color-mix(in srgb, var(--brand-secondary) 38%, transparent);
+  filter: brightness(1.08) saturate(1.1);
+}
+
+.brand-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-tertiary) 75%, white 25%);
+  outline-offset: 2px;
+}
+
+.brand-button[data-variant="ghost"] {
+  background-image: none;
+  background: color-mix(in srgb, var(--surface-overlay) 70%, transparent 30%);
+  border-color: color-mix(in srgb, var(--brand-primary) 65%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 70%, var(--brand-primary) 30%);
+  box-shadow: none;
+}
+
+.brand-button[data-variant="ghost"]:hover,
+.brand-button[data-variant="ghost"]:focus-visible {
+  background: color-mix(in srgb, var(--surface-overlay) 40%, var(--brand-primary) 60%);
+  color: var(--text-inverse);
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background-image: var(--gradient-accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--brand-primary) 34%, transparent);
+}
+
+.shadow-brand-lg {
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+}
+
+.shadow-brand-xl {
+  box-shadow: 0 34px 90px color-mix(in srgb, var(--brand-secondary) 35%, transparent);
+}
+
+.surface-divider {
+  border-top: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.muted-copy {
+  color: var(--text-secondary);
+}
+
+.subtle-copy {
+  color: var(--text-tertiary);
+}
+
+.hero-dl {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero-dl > div {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  background: color-mix(in srgb, var(--surface-overlay) 65%, transparent 35%);
+  padding: 1.75rem;
+  box-shadow: 0 22px 60px color-mix(in srgb, var(--brand-primary) 24%, transparent);
+}
+
+.hero-dl dt {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-primary) 70%, var(--brand-primary) 30%);
+}
+
+.hero-dl dd {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+  color: var(--text-primary);
+}
+
+.link-underline {
+  position: relative;
+  padding-bottom: 0.2rem;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background-image: var(--gradient-accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 200ms ease;
+}
+
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (max-width: 768px) {
+  .brand-badge {
+    letter-spacing: 0.24em;
+  }
+}
+
+/* Legacy utility overrides to align Tailwind classes with the variable-driven system */
+.bg-slate-900,
+.bg-slate-950 {
+  background: var(--background-base) !important;
+  color: var(--text-primary);
+}
+
+.text-white,
+.text-slate-50 {
+  color: var(--text-primary) !important;
+}
+
+.text-slate-100 {
+  color: var(--text-primary) !important;
+}
+
+.text-slate-200 {
+  color: var(--text-secondary) !important;
+}
+
+.text-slate-300 {
+  color: var(--text-tertiary) !important;
+}
+
+.text-slate-400 {
+  color: var(--text-tertiary) !important;
+}
+
+/* text-slate-900 is used on bright gradient backgrounds - use inverse for proper contrast */
+.text-slate-900 {
+  color: var(--text-inverse) !important;
+}
+
+.bg-white\/5 {
+  background: color-mix(in srgb, var(--surface-overlay) 48%, transparent 52%) !important;
+}
+
+.bg-white\/10 {
+  background: color-mix(in srgb, var(--surface-overlay) 70%, transparent 30%) !important;
+}
+
+.bg-white\/55 {
+  background: color-mix(in srgb, var(--surface-overlay) 85%, var(--brand-tertiary) 15%) !important;
+}
+
+.border-white\/20 {
+  border-color: var(--border-glass) !important;
+}
+
+.border-white\/15 {
+  border-color: color-mix(in srgb, var(--border-glass) 85%, transparent 15%) !important;
+}
+
+.shadow-slate-900\/40 {
+  box-shadow: 0 28px 80px var(--brand-shadow-soft) !important;
+}
+
+.shadow-indigo-500\/30,
+.shadow-indigo-600\/25,
+.shadow-indigo-600\/30 {
+  box-shadow: 0 32px 90px var(--brand-shadow-strong) !important;
+}
+
+.shadow-white\/10 {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.from-indigo-500\/55 {
+  --tw-gradient-from: color-mix(in srgb, var(--brand-primary) 80%, transparent) !important;
+}
+
+.via-sky-500\/45 {
+  --tw-gradient-stops: var(--tw-gradient-from), color-mix(in srgb, var(--brand-tertiary) 65%, transparent) !important;
+}
+
+.to-emerald-400\/45 {
+  --tw-gradient-to: color-mix(in srgb, var(--brand-secondary) 70%, transparent) !important;
+}
+
+.from-indigo-500\/30 {
+  --tw-gradient-from: color-mix(in srgb, var(--brand-primary) 65%, transparent) !important;
+}
+
+.via-sky-400\/25 {
+  --tw-gradient-stops: var(--tw-gradient-from), color-mix(in srgb, var(--brand-tertiary) 52%, transparent) !important;
+}
+
+.to-emerald-400\/30 {
+  --tw-gradient-to: color-mix(in srgb, var(--brand-secondary) 60%, transparent) !important;
+}
+
+.from-indigo-500,
+.from-indigo-500\/40 {
+  --tw-gradient-from: color-mix(in srgb, var(--brand-primary) 75%, transparent) !important;
+}
+
+.to-sky-400,
+.to-sky-400\/30 {
+  --tw-gradient-to: color-mix(in srgb, var(--brand-tertiary) 65%, transparent) !important;
+}
+
+.to-emerald-400 {
+  --tw-gradient-to: color-mix(in srgb, var(--brand-secondary) 68%, transparent) !important;
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(var(--tw-gradient-angle, 90deg), var(--tw-gradient-stops)) !important;
+}
+
+.bg-gradient-to-br {
+  background-image: linear-gradient(var(--tw-gradient-angle, 135deg), var(--tw-gradient-stops)) !important;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .brand-button,
+  .brand-button[data-variant="ghost"] {
+    transition: none;
+  }
+}
