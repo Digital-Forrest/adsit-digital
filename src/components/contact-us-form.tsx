@@ -27,6 +27,9 @@ declare global {
     turnstile?: {
       reset: (widgetId?: string) => void;
     };
+    onTurnstileSuccess?: (token: string) => void;
+    onTurnstileError?: () => void;
+    onTurnstileExpired?: () => void;
   }
 }
 
@@ -50,27 +53,27 @@ export function ContactUsForm() {
   // Handle Turnstile token callback
   useEffect(() => {
     // Set up global callback function for Turnstile
-    (window as any).onTurnstileSuccess = (token: string) => {
+    window.onTurnstileSuccess = (token: string) => {
       setTurnstileToken(token);
       // Clear any Turnstile errors when token is received
       setErrors((prev) => ({ ...prev, turnstile: undefined }));
     };
 
-    (window as any).onTurnstileError = () => {
+    window.onTurnstileError = () => {
       setTurnstileToken(null);
       setErrors((prev) => ({ ...prev, turnstile: 'Turnstile verification failed. Please try again.' }));
     };
 
-    (window as any).onTurnstileExpired = () => {
+    window.onTurnstileExpired = () => {
       setTurnstileToken(null);
       setErrors((prev) => ({ ...prev, turnstile: 'Turnstile verification expired. Please verify again.' }));
     };
 
     // Cleanup
     return () => {
-      delete (window as any).onTurnstileSuccess;
-      delete (window as any).onTurnstileError;
-      delete (window as any).onTurnstileExpired;
+      delete window.onTurnstileSuccess;
+      delete window.onTurnstileError;
+      delete window.onTurnstileExpired;
     };
   }, []);
 
