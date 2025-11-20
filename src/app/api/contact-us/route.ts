@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HighLevel } from '@gohighlevel/api-client';
+import { rateLimit, addRateLimitHeaders } from '@/lib/rate-limit';
 
 // Initialize GHL SDK with environment variables
 const ghl = new HighLevel({
@@ -78,6 +79,17 @@ async function validateTurnstileToken(
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting: 5 requests per minute per IP
+    const rateLimitResponse = await rateLimit(request, {
+      maxRequests: 5,
+      windowMs: 60000, // 1 minute
+      errorMessage: 'Too many requests. Please try again in a minute.',
+    });
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     // Get form data from request
     const body = (await request.json()) as ContactFormBody;
     const { firstName, lastName, email, phone, company, message, turnstileToken } = body;
@@ -108,6 +120,52 @@ export async function POST(request: NextRequest) {
           success: false,
           error: turnstileValidation.error || 'Verification failed. Please try again.',
         },
+        { status: 400 }
+      );
+    }
+
+    // Input length validation to prevent DoS attacks
+    const MAX_FIELD_LENGTH = 500;
+    const MAX_MESSAGE_LENGTH = 5000;
+    
+    if (firstName && firstName.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'First name is too long' },
+        { status: 400 }
+      );
+    }
+    
+    if (lastName && lastName.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Last name is too long' },
+        { status: 400 }
+      );
+    }
+    
+    if (email && email.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Email is too long' },
+        { status: 400 }
+      );
+    }
+    
+    if (phone && phone.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Phone number is too long' },
+        { status: 400 }
+      );
+    }
+    
+    if (company && company.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Company name is too long' },
+        { status: 400 }
+      );
+    }
+    
+    if (message && message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { success: false, error: 'Message is too long' },
         { status: 400 }
       );
     }
@@ -207,7 +265,7 @@ export async function POST(request: NextRequest) {
     // Log success (for testing purposes)
     console.log('Contact created successfully from Contact Us form:', response);
 
-    return NextResponse.json(
+    const successResponse = NextResponse.json(
       { 
         success: true, 
         message: 'Thank you! We\'ll be in touch soon.',
@@ -215,6 +273,12 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    // Add rate limit headers to successful response
+    return addRateLimitHeaders(successResponse, request, {
+      maxRequests: 5,
+      windowMs: 60000,
+    });
 
   } catch (error: unknown) {
     // Log error for debugging

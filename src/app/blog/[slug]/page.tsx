@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { marked } from "marked";
+import DOMPurify from "isomorphic-dompurify";
 import { PageBrand } from "@/components/page-brand";
 import { getBlogPost, getBlogPosts, getBlogSlugs } from "@/lib/blog-posts";
 
@@ -62,7 +63,15 @@ export default async function BlogPostPage(props: BlogPostPageProps) {
     notFound();
   }
 
-  const contentHtml = marked.parse(post.content);
+  // Parse markdown and sanitize HTML to prevent XSS attacks
+  const rawHtml = marked.parse(post.content) as string;
+  const contentHtml = DOMPurify.sanitize(rawHtml, {
+    // Allow common markdown HTML elements
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class'],
+    // Allow data attributes for styling
+    ALLOW_DATA_ATTR: false,
+  });
 
   const relatedPosts = getBlogPosts()
     .filter((candidate) => candidate.slug !== post.slug)

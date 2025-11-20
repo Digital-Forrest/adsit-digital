@@ -4,6 +4,7 @@
  */ {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "adsit-digital-website",
+  "account_id": "34b84c2c053c7aac2c85d8016fc2195d",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],

@@ -80,30 +80,52 @@ export function ContactUsForm() {
   // Client-side validation
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+    const MAX_FIELD_LENGTH = 500;
+    const MAX_MESSAGE_LENGTH = 5000;
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
+    } else if (formData.firstName.length > MAX_FIELD_LENGTH) {
+      newErrors.firstName = `First name must be less than ${MAX_FIELD_LENGTH} characters`;
     }
 
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
+    } else if (formData.lastName.length > MAX_FIELD_LENGTH) {
+      newErrors.lastName = `Last name must be less than ${MAX_FIELD_LENGTH} characters`;
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        newErrors.email = 'Invalid email format';
+      if (formData.email.length > MAX_FIELD_LENGTH) {
+        newErrors.email = `Email must be less than ${MAX_FIELD_LENGTH} characters`;
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          newErrors.email = 'Invalid email format';
+        }
       }
     }
 
     // Phone validation (optional but if provided, should be valid)
     if (formData.phone.trim()) {
-      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-      if (!phoneRegex.test(formData.phone)) {
-        newErrors.phone = 'Invalid phone number format';
+      if (formData.phone.length > MAX_FIELD_LENGTH) {
+        newErrors.phone = `Phone number must be less than ${MAX_FIELD_LENGTH} characters`;
+      } else {
+        const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+        if (!phoneRegex.test(formData.phone)) {
+          newErrors.phone = 'Invalid phone number format';
+        }
       }
+    }
+
+    if (formData.company && formData.company.length > MAX_FIELD_LENGTH) {
+      newErrors.company = `Company name must be less than ${MAX_FIELD_LENGTH} characters`;
+    }
+
+    if (formData.message && formData.message.length > MAX_MESSAGE_LENGTH) {
+      newErrors.message = `Message must be less than ${MAX_MESSAGE_LENGTH} characters`;
     }
 
     // Validate Turnstile token
@@ -207,6 +229,7 @@ export function ContactUsForm() {
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
+            maxLength={500}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.firstName
                 ? 'border-red-500'
@@ -233,6 +256,7 @@ export function ContactUsForm() {
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
+            maxLength={500}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.lastName
                 ? 'border-red-500'
@@ -261,6 +285,7 @@ export function ContactUsForm() {
           name="email"
           value={formData.email}
           onChange={handleChange}
+          maxLength={500}
           className={`w-full px-4 py-3 rounded-lg border ${
             errors.email
               ? 'border-red-500'
@@ -289,6 +314,7 @@ export function ContactUsForm() {
             name="phone"
             value={formData.phone}
             onChange={handleChange}
+            maxLength={500}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.phone
                 ? 'border-red-500'
@@ -315,9 +341,17 @@ export function ContactUsForm() {
             name="company"
             value={formData.company}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-[color:var(--border-glass)] bg-[color:var(--bg-glass)] text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-primary)] transition-colors"
+            maxLength={500}
+            className={`w-full px-4 py-3 rounded-lg border ${
+              errors.company
+                ? 'border-red-500'
+                : 'border-[color:var(--border-glass)]'
+            } bg-[color:var(--bg-glass)] text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-primary)] transition-colors`}
             disabled={isSubmitting}
           />
+          {errors.company && (
+            <p className="mt-1 text-sm text-red-500">{errors.company}</p>
+          )}
         </div>
       </div>
 
@@ -335,10 +369,18 @@ export function ContactUsForm() {
           value={formData.message}
           onChange={handleChange}
           rows={6}
-          className="w-full px-4 py-3 rounded-lg border border-[color:var(--border-glass)] bg-[color:var(--bg-glass)] text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-primary)] transition-colors resize-none"
+          maxLength={5000}
+          className={`w-full px-4 py-3 rounded-lg border ${
+            errors.message
+              ? 'border-red-500'
+              : 'border-[color:var(--border-glass)]'
+          } bg-[color:var(--bg-glass)] text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand-primary)] transition-colors resize-none`}
           disabled={isSubmitting}
           placeholder="What are you looking to achieve? What challenges are you facing?"
         />
+        {errors.message && (
+          <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+        )}
       </div>
 
       {/* Turnstile Widget */}
