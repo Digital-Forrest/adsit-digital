@@ -3,14 +3,114 @@ import { HighLevel } from '@gohighlevel/api-client';
 
 // Initialize GHL SDK with environment variables
 const ghl = new HighLevel({
-  privateIntegrationToken: process.env.GHL_PIT_TOKEN,
+  privateIntegrationToken: process.env.GHL_PIT_TOKEN || '',
 });
+
+interface ContactFormBody {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  message?: string;
+  turnstileToken?: string;
+}
+
+interface TurnstileVerifyResponse {
+  success: boolean;
+  'error-codes'?: string[];
+  challenge_ts?: string;
+  hostname?: string;
+  action?: string;
+  cdata?: string;
+}
+
+/**
+ * Validates a Turnstile token with Cloudflare's Siteverify API
+ */
+async function validateTurnstileToken(
+  token: string,
+  remoteip?: string
+): Promise<{ success: boolean; error?: string }> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  
+  if (!secretKey) {
+    console.error('TURNSTILE_SECRET_KEY is not set in environment variables');
+    return { success: false, error: 'Server configuration error' };
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('secret', secretKey);
+    formData.append('response', token);
+    if (remoteip) {
+      formData.append('remoteip', remoteip);
+    }
+
+    const response = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const result = (await response.json()) as TurnstileVerifyResponse;
+
+    if (!result.success) {
+      const errorCodes = result['error-codes'] || ['unknown-error'];
+      console.error('Turnstile validation failed:', errorCodes);
+      return {
+        success: false,
+        error: `Verification failed: ${errorCodes.join(', ')}`,
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error validating Turnstile token:', error);
+    return {
+      success: false,
+      error: 'Failed to verify token',
+    };
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     // Get form data from request
-    const body = await request.json();
-    const { firstName, lastName, email, phone, company, message } = body;
+    const body = (await request.json()) as ContactFormBody;
+    const { firstName, lastName, email, phone, company, message, turnstileToken } = body;
+
+    // Validate Turnstile token first
+    if (!turnstileToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Verification challenge is required',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get client IP for validation (Cloudflare provides this header)
+    const clientIp =
+      request.headers.get('CF-Connecting-IP') ||
+      request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+      request.headers.get('X-Real-IP') ||
+      undefined;
+
+    const turnstileValidation = await validateTurnstileToken(turnstileToken, clientIp);
+    
+    if (!turnstileValidation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: turnstileValidation.error || 'Verification failed. Please try again.',
+        },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!firstName || !lastName || !email) {
@@ -59,7 +159,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare contact data for GHL
-    const contactData: any = {
+    const contactData: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      locationId: string;
+      phone?: string;
+      companyName?: string;
+    } = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       email: email.trim().toLowerCase(),
@@ -104,18 +211,18 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         message: 'Thank you! We\'ll be in touch soon.',
-        contactId: response.contact?.id || response.id 
+        contactId: response.contact?.id 
       },
       { status: 200 }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Log error for debugging
     console.error('Error creating contact in GHL:', error);
 
     // Return user-friendly error message
-    const errorMessage = error?.message || 'Failed to submit your information. Please try again.';
-    const statusCode = error?.statusCode || error?.status || 500;
+    const errorMessage = error instanceof Error ? error.message : 'Failed to submit your information. Please try again.';
+    const statusCode = (error as { statusCode?: number; status?: number })?.statusCode || (error as { statusCode?: number; status?: number })?.status || 500;
 
     return NextResponse.json(
       { 

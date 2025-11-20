@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface FormData {
   firstName: string;
@@ -18,6 +18,16 @@ interface FormErrors {
   phone?: string;
   company?: string;
   message?: string;
+  turnstile?: string;
+}
+
+// Extend Window interface for Turnstile types
+declare global {
+  interface Window {
+    turnstile?: {
+      reset: (widgetId?: string) => void;
+    };
+  }
 }
 
 export function ContactUsForm() {
@@ -35,6 +45,34 @@ export function ContactUsForm() {
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+
+  // Handle Turnstile token callback
+  useEffect(() => {
+    // Set up global callback function for Turnstile
+    (window as any).onTurnstileSuccess = (token: string) => {
+      setTurnstileToken(token);
+      // Clear any Turnstile errors when token is received
+      setErrors((prev) => ({ ...prev, turnstile: undefined }));
+    };
+
+    (window as any).onTurnstileError = () => {
+      setTurnstileToken(null);
+      setErrors((prev) => ({ ...prev, turnstile: 'Turnstile verification failed. Please try again.' }));
+    };
+
+    (window as any).onTurnstileExpired = () => {
+      setTurnstileToken(null);
+      setErrors((prev) => ({ ...prev, turnstile: 'Turnstile verification expired. Please verify again.' }));
+    };
+
+    // Cleanup
+    return () => {
+      delete (window as any).onTurnstileSuccess;
+      delete (window as any).onTurnstileError;
+      delete (window as any).onTurnstileExpired;
+    };
+  }, []);
 
   // Client-side validation
   const validateForm = (): boolean => {
@@ -63,6 +101,11 @@ export function ContactUsForm() {
       if (!phoneRegex.test(formData.phone)) {
         newErrors.phone = 'Invalid phone number format';
       }
+    }
+
+    // Validate Turnstile token
+    if (!turnstileToken) {
+      newErrors.turnstile = 'Please complete the verification challenge';
     }
 
     setErrors(newErrors);
@@ -101,10 +144,13 @@ export function ContactUsForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          turnstileToken,
+        }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { success?: boolean; message?: string; error?: string };
 
       if (response.ok && data.success) {
         setSubmitStatus({
@@ -120,13 +166,18 @@ export function ContactUsForm() {
           company: '',
           message: '',
         });
+        // Reset Turnstile widget
+        if (window.turnstile) {
+          window.turnstile.reset();
+        }
+        setTurnstileToken(null);
       } else {
         setSubmitStatus({
           type: 'error',
           message: data.error || 'Failed to submit your information. Please try again.',
         });
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: 'error',
         message: 'Network error. Please check your connection and try again.',
@@ -285,6 +336,20 @@ export function ContactUsForm() {
           disabled={isSubmitting}
           placeholder="What are you looking to achieve? What challenges are you facing?"
         />
+      </div>
+
+      {/* Turnstile Widget */}
+      <div>
+        <div
+          className="cf-turnstile"
+          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          data-callback="onTurnstileSuccess"
+          data-error-callback="onTurnstileError"
+          data-expired-callback="onTurnstileExpired"
+        />
+        {errors.turnstile && (
+          <p className="mt-1 text-sm text-red-500">{errors.turnstile}</p>
+        )}
       </div>
 
       {/* Status Message */}

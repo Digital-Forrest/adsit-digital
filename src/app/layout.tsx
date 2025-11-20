@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -92,6 +93,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen flex-col`}
       >
         <ThemeScript />
+        {/* Cloudflare Turnstile script */}
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="lazyOnload"
+        />
         <ThemeProvider>
           <SiteHeader />
           {/* Main content area stays flexible to push the footer to the bottom on taller viewports */}
